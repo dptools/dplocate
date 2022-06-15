@@ -37,22 +37,28 @@ DPLocate Step 0: Extract the raw GPS data
 2. [Usage](#usage)
 
 ## Requirements
-- The Raw data is saved as an unencrypted `.json` file that is saved in 
-the 'phone/gps/raw' directory 
-
-- The Data has the following format:
+- The Raw data is saved as encrypted hourly `.csv.lock` files with the following naming 
+  format
 
 ```text
-{"sensor": "lamp.gps", "data": {"latitude": (deg), "longitude": (deg), 
-"accuracy": m, "altitude": (deg)}, "timestamp": (JAVA time)}
+YYYY-MM-DD hh-mm-ss.csv.lock
+```
+
+- The Data has the following format:
+    - GPS data from row 1 with the following columns:
+
+```text
+timestamp(JAVA time)|UTCtime(YYYY-MM-DDThh:mm:ss:mmm)|latitude(deg)|longitude(deg)|
+altitude(deg)|accuracy(m)
 ```
 
 - The output directory can be edited. The default is `./processed/gps_dash2` and the 
-  file is saved as `file_gps.mat` which contains five vector variables in MATLAB
+  file is saved as `file_gps.mat.lock` which contains six vector variables in MATLAB
   with the following names and contents:
 
 ```text
 t1:   timestamp(JAVA time)
+u1:   UTCtime(YYYY-MM-DDThh:mm:ss:mmm)
 lat1: latitude(deg)
 lon1: longitude(deg)
 alt1: altitude(deg)
@@ -63,11 +69,10 @@ acc1: accuracy(m)
   subject. Running that in parallel for different subjects of a study is 
   recommended to reduce the execution time.
 
-- After this step run dplocate-preprocess pipeline
+- After this step run dplocate1-preprocess 
 
 
 ### Passphrase
-(Encryption is not applied currently so you can skip all the *Passphrase* sections)
 
 For files that are locked, please provide a passphrase by setting the 
 `BEIWE_STUDY_PASSCODE` environment variable.
@@ -101,7 +106,7 @@ DPLocate Step 1: Preprocess the GPS data with temporal filtering
 
 ## Requirements
 - The Input to this module is the Output of dplocate0-read. The input data is saved as an unencrypted
-  `file_gps.mat` file.
+  `file_gps.mat.lock` file.
  
 - The Data has the following format:
     - Five vector variables in MATLAB with the following names and contents:
@@ -115,7 +120,7 @@ acc1: accuracy(m)
 ```
 
 - The output directory can be edited. The default is `./processed/gps_dash2` and the 
-  file is saved as `dash.mat`.
+  file is saved as `dash.mat.lock`.
   
 - This step applies temporal filtering by defining 'epochs' 
   and saves the summary of the epochs; as the following columns:
@@ -157,7 +162,7 @@ DPLocate Step 2: Process the GPS data with clustering (every 150 days for long s
 
 ## Requirements
 - The Input to this module is the Output of dplocate1-preprocess. 
-  The input data is saved as an unencrypted `dash.mat` file.
+  The input data is saved as an unencrypted `dash.mat.lock` file.
 
 - The Data has the following format:
     - Epoch data from row 1 with the following columns:
@@ -200,10 +205,10 @@ DPLocate Step 3: Aggregate the processed daily maps of the study
 
 ## Requirements
 - The Input to this module is the Output of dplocate2-process. 
-  The input data is saved as encrypted `daily_nr#.mat` files.
+  The input data is saved as encrypted `daily_nr#.mat.lock` files.
 
 - The output directory can be edited. The default is `./processed/gps_dash2` and the 
-  file is saved as `daily_all.mat`.
+  file is saved as `daily_all.mat.lock`.
 
 - This step aggregates the daily maps of the 150-day clusters.
 
@@ -239,12 +244,14 @@ DPLocate Step 4: Plot color-coded GPS daily map
 
 ## Requirements
 - The Input to this module is the Output of dplocate3-aggregate. 
-  The input data is saved as encrypted `daily_all.mat` files.
+  The input data is saved as encrypted `daily_all.mat.lock` files.
 
 - The output directory can be edited. The default is GENERAL directory `/phone/processed/mtl_plt` and the 
-  file is saved as `STUDY_SUBJECT-tmzn.png.`.
+  file is saved as `STUDY_SUBJECT-tmzn.png`.
 
 - This step plots the daily maps and transfers the processed data into the GENERAL folder.
+
+- After this step run dplocate5-markov pipeline
 
 
 ### Passphrase
@@ -277,12 +284,12 @@ DPLocate Step 5: Plot Time-Band maps and Markov diagrams
 
 ## Requirements
 - The Input to this module is the Output of dplocate3-aggregate. 
-  The input data is saved as encrypted `daily_all.mat` files.
+  The input data is saved as encrypted `daily_all.mat.lock` files.
 
 - The output directory can be edited. The default is GENERAL directory `/phone/processed/mtl_plt` and the 
   files are saved as `STUDY_SUBJECT-markov*.png.`.
 
-- This step plots the Time-Band maps and Markov diagrams of the processed data into the GENERAL folder.
+- This step plots the Time-Band maps and Markov Model diagrams of the processed data into the GENERAL folder.
 
 
 ### Passphrase
